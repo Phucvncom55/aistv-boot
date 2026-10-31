@@ -9,8 +9,8 @@
 #      bash <(curl -fsSL .../bootstrap.sh) https://github.com/<user>/<repo>
 #
 #  MÁY TRẮNG, KHÔNG NHẬP GÌ (v8): đọc blob mã hoá trên Firebase
-#  (aistv/boot.json) → có TELEGRAM_BOT_TOKEN + GITHUB_TOKEN → clone repo
-#  private → mở kho cấu hình 17 mục. Chỉ cần chạy một lệnh curl.
+#  (aistv/boot.json) → TELEGRAM_BOT_TOKEN → mở kho cấu hình 17 mục →
+#  GITHUB_TOKEN → clone repo private. Chỉ cần chạy một lệnh curl.
 #  CẢNH BÁO THẬT: khoá giải mã nằm ngay trong file công khai này. Nó chỉ
 #  chống công cụ quét token tự động và người xem qua loa, KHÔNG chống được
 #  người đọc kỹ. Ai lấy được blob là điều khiển được bot + toàn bộ key.
@@ -19,12 +19,11 @@
 #  Token vẫn được tìm theo thứ tự cũ nếu Firebase lỗi:
 #      1. $AISTV_GITHUB_TOKEN / $GITHUB_TOKEN / $GH_TOKEN
 #      2. Colab Secrets: AISTV_GITHUB_TOKEN, GITHUB_TOKEN, GH_TOKEN
-#      3. Blob khởi động Firebase (mã hoá)
+#      3. Kho cấu hình mã hoá (cần token bot từ blob) → GITHUB_TOKEN
 #      4. File: /content/stv_agent/.secrets/github_token,
 #               ~/.config/aistv/github_token, ~/.aistv_token,
 #               /content/drive/MyDrive/aistv/github_token
-#      5. Kho cấu hình mã hoá (cần token bot) → GITHUB_TOKEN
-#      6. gh auth token
+#      5. gh auth token
 #  Token được ghi vào ~/.config/aistv/git-credentials (quyền 600) để
 #  git pull/push về sau không cần token nữa. Token KHÔNG BAO GIỜ in ra.
 #
@@ -130,11 +129,9 @@ BOOT_KEY="${AISTV_BOOT_KEY:-aistv-boot|7f2c9d14b6e8a305}"
 BOOT_ENDPOINT="$BOOT_BASE/aistv/boot.json"
 VAULT_ENDPOINT="$BOOT_BASE/aistv/secrets.json"
 
-BOOT_GH=""
 BOOT_JSON="$(fb_secret "$BOOT_ENDPOINT" "$BOOT_KEY")"
 if [[ -n "$BOOT_JSON" ]]; then
   pick_bot "$(printf '%s' "$BOOT_JSON" | json_get TELEGRAM_BOT_TOKEN)" || true
-  BOOT_GH="$(printf '%s' "$BOOT_JSON" | json_get GITHUB_TOKEN)"
   say "Đã đọc blob khởi động trên Firebase (mã hoá)"
 fi
 
@@ -192,12 +189,7 @@ else
     pick_token "$(colab_secret_token)" "Colab Secrets" || true
   fi
 
-  # 3. Blob khởi động Firebase (mã hoá)
-  if [[ -z "$TOKEN" && -n "$BOOT_GH" ]]; then
-    pick_token "$BOOT_GH" "Firebase (blob khởi động)" || true
-  fi
-
-  # 4. file token đặt sẵn
+  # 3. file token đặt sẵn
   if [[ -z "$TOKEN" ]]; then
     for path in \
       "${STV_HOME:+$STV_HOME/.secrets/github_token}" \
@@ -212,7 +204,7 @@ else
     done
   fi
 
-  # 5. Kho cấu hình mã hoá (chỉ cần token bot) → GITHUB_TOKEN
+  # 4. Kho cấu hình mã hoá (chỉ cần token bot) → GITHUB_TOKEN
   if [[ -z "$TOKEN" && -n "$BOT_TOKEN" ]]; then
     _vault_json="$(fb_secret "$VAULT_ENDPOINT" "$BOT_TOKEN")"
     if [[ -n "$_vault_json" ]]; then
@@ -221,7 +213,7 @@ else
     unset _vault_json
   fi
 
-  # 6. gh CLI
+  # 5. gh CLI
   if [[ -z "$TOKEN" ]] && command -v gh >/dev/null 2>&1; then
     pick_token "$(gh auth token 2>/dev/null || true)" "gh auth token" || true
   fi
