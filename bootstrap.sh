@@ -1,40 +1,5 @@
 #!/usr/bin/env bash
-# ════════════════════════════════════════════════════════════════════
-#  AI STV — bootstrap (v8)
-#  Tải/cập nhật mã nguồn rồi chạy run.sh trong repo, nhờ vậy không bị
-#  kẹt bản run.sh cũ do cache của raw.githubusercontent.com.
-#
-#  Repo công khai:
-#      bash <(curl -fsSL https://raw.githubusercontent.com/<user>/<repo>/main/bootstrap.sh)
-#      bash <(curl -fsSL .../bootstrap.sh) https://github.com/<user>/<repo>
-#
-#  MÁY TRẮNG, KHÔNG NHẬP GÌ (v8): đọc blob mã hoá trên Firebase
-#  (aistv/boot.json) → TELEGRAM_BOT_TOKEN → mở kho cấu hình 17 mục →
-#  GITHUB_TOKEN → clone repo private. Chỉ cần chạy một lệnh curl.
-#  CẢNH BÁO THẬT: khoá giải mã nằm ngay trong file công khai này. Nó chỉ
-#  chống công cụ quét token tự động và người xem qua loa, KHÔNG chống được
-#  người đọc kỹ. Ai lấy được blob là điều khiển được bot + toàn bộ key.
-#  (Muốn chống thật thì phải nhập một bí mật — Colab Secrets hoặc pairing.)
-#
-#  Token vẫn được tìm theo thứ tự cũ nếu Firebase lỗi:
-#      1. $AISTV_GITHUB_TOKEN / $GITHUB_TOKEN / $GH_TOKEN
-#      2. Colab Secrets: AISTV_GITHUB_TOKEN, GITHUB_TOKEN, GH_TOKEN
-#      3. Kho cấu hình mã hoá (cần token bot từ blob) → GITHUB_TOKEN
-#      4. File: /content/stv_agent/.secrets/github_token,
-#               ~/.config/aistv/github_token, ~/.aistv_token,
-#               /content/drive/MyDrive/aistv/github_token
-#      5. gh auth token
-#  Token được ghi vào ~/.config/aistv/git-credentials (quyền 600) để
-#  git pull/push về sau không cần token nữa. Token KHÔNG BAO GIỜ in ra.
-#
-#  Token bot Telegram: AISTV_BOOTSTRAP_TOKEN / AISTV_BOT_TOKEN /
-#  TELEGRAM_BOT_TOKEN trong dòng lệnh, blob Firebase, file đã lưu, hoặc
-#  repo cấu hình private. Tìm thấy thì ghi lại vào ~/.config/aistv/token
-#  (và Drive nếu có) để lần sau không hỏi nữa.
-#
-#  Biến môi trường: AISTV_REPO, AISTV_BRANCH, AISTV_DIR (như run.sh),
-#  AISTV_BOOT_URL (đổi Firebase base), AISTV_BOOT_KEY (đổi khoá blob).
-# ════════════════════════════════════════════════════════════════════
+
 set -euo pipefail
 export GIT_TERMINAL_PROMPT=0        # không treo ở prompt đăng nhập git
 umask 077                           # file tạo ra chỉ chủ đọc được
